@@ -1,40 +1,55 @@
 pipeline {
     agent any
-    
+
     tools {
+        jdk 'java21'
         maven 'maven'
     }
-    
+
     stages {
-        stage('code') {
+
+        stage('Clone Code') {
             steps {
-                git url: 'https://github.com/devopsbyraham/jenkins-java-project.git'
+                git branch: 'master', url: 'git@github.com:adarsh1104/netflix_project.git'
             }
         }
-        stage('build') {
+
+        stage('Build') {
             steps {
-                sh 'mvn compile'
+                sh 'mvn clean compile'
             }
         }
-        stage('test') {
+
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
         }
-        stage('artifact') {
+
+        stage('Package WAR') {
             steps {
                 sh 'mvn package'
             }
         }
-        stage('s3') {
+
+        stage('Upload to S3') {
             steps {
-                s3Upload consoleLogLevel: 'INFO', dontSetBuildResultOnFailure: false, dontWaitForConcurrentBuildCompletion: false, entries: [[bucket: 'artifactbucketfornetflixapp', excludedFile: '', flatten: false, gzipFiles: false, keepForever: false, managedArtifacts: false, noUploadOnFailure: false, selectedRegion: 'ap-south-1', showDirectlyInBrowser: false, sourceFile: 'target/NETFLIX-1.2.2.war', storageClass: 'STANDARD', uploadFromSlave: false, useServerSideEncryption: false]], pluginFailureResultConstraint: 'FAILURE', profileName: 'raham', userMetadata: []
+                s3Upload consoleLogLevel: 'INFO',
+                    entries: [[
+                        bucket: 'artifactbucketfornetflixapp',
+                        sourceFile: 'target/NETFLIX-1.2.2.war',
+                        selectedRegion: 'ap-south-1',
+                        storageClass: 'STANDARD'
+                    ]],
+                    profileName: 'raham'
             }
         }
-        stage('deploy') {
+
+        stage('Deploy') {
             steps {
-                echo "my code is deployed"
+                echo "Deployment stage"
             }
         }
     }
 }
+
